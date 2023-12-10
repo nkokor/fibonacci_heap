@@ -12,6 +12,21 @@ class FibHeap():
   
   def fib_heap_minimum(self):
     return self.min
+  
+  def add_to_root_list(self, x):
+    if self.root_list is not None:
+      x.right = self.root_list.right
+      x.left = self.root_list
+      self.root_list.right.left = x
+      self.root_list.right = x
+    else:
+      self.root_list = x
+
+  def remove_from_root_list(self, x):
+    if x == self.root_list:
+      self.root_list = x.right
+    x.left.right = x.right
+    x.right.left = x.left
 
   # asuming that x is already an initialized node with set key 
   def fib_heap_insert(self, x):
@@ -28,13 +43,12 @@ class FibHeap():
       self.min = x
 
     # if heap is not empty x is inserted into root list
-    # x is inserted as left sibling of heap minimum
     else:
       self.add_to_root_list(x)
-
       if self.min is None or x.key < self.min.key:
         self.min = x
     self.n = self.n + 1
+    return x
 
   @staticmethod
   def fib_heap_union(h1, h2):
@@ -64,6 +78,7 @@ class FibHeap():
     h.n = h1.n + h2.n
     return h
   
+  # helper function used to iterate through a doubly linked list
   def iterate(self, x):
     current_node = x
     stop = x
@@ -76,20 +91,7 @@ class FibHeap():
       yield current_node
       current_node = current_node.right
   
-  def add_to_root_list(self, x):
-      x.right = self.root_list
-      x.left = self.root_list.left
-      self.root_list.left.right = x
-      self.root_list.left = x
-
-  def remove_from_root_list(self, x):
-    if x == self.root_list:
-      self.root_list = x.right
-    x.left.right = x.right
-    x.right.left = x.left
-
   def fib_heap_link(self, y, x):
-
     # removing y from root list 
     self.remove_from_root_list(y)
     y.left = y
@@ -98,13 +100,15 @@ class FibHeap():
     # making y child of x
     if x.child is None:
       x.child = y
+    # y is set to the right side of x.child
     else:
       y.right = x.child.right
-      x.child.right.left = y
       y.left = x.child
+      x.child.right.left = y
       x.child.right = y
 
     x.degree = x.degree + 1
+    y.p = x
     y.mark = False
 
   def consolidate(self):
@@ -112,6 +116,7 @@ class FibHeap():
     D = int(math.log(self.n) + 2)
     for i in range(0, D):
       A.append(None)
+    # combining all trees of same degree
     root_nodes = [w for w in self.iterate(self.root_list)]
     for w in range(0, len(root_nodes)):
       x = root_nodes[w]
@@ -126,27 +131,21 @@ class FibHeap():
         A[d] = None
         d = d + 1
 
-    self.min = None
+    # setting new heap minimum
     for i in range(0, D):
       if A[i] is not None:
-        if self.min is None:
-          self.root_list = A[i]
+        if A[i].key < self.min.key:
           self.min = A[i]
-        else:
-          self.add_to_root_list(A[i])
-          if A[i].key < self.min.key:
-            self.min = A[i]  
 
   def fib_heap_extract_min(self):
     z = self.min
     if z is not None:
-
       # add each child of z to root list and set parent to None
       if z.child is not None:
         children = [c for c in self.iterate(z.child)]
-        for c in children:
-          self.add_to_root_list(c)
-          c.p = None
+        for i in range(0, len(children)):
+          self.add_to_root_list(children[i])
+          children[i].p = None
 
       # removing z from root list
       self.remove_from_root_list(z)
@@ -172,11 +171,12 @@ class FibHeap():
     elif y.child == x:
       y.child = x.right
       x.right.p = y
+    # removing x from sibling list
     x.left.right = x.right
     x.right.left = x.left
 
     y.degree = y.degree - 1
-    self.add_to_root_list(y)
+    self.add_to_root_list(x)
     x.p = None
     x.mark = False
 

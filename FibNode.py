@@ -1,4 +1,4 @@
-class Node():
+class FibNode():
   def __init__(self, key):
     self.p = None
 
