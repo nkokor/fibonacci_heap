@@ -108,6 +108,35 @@ class FibHeap():
     y.mark = False
 
   def consolidate(self):
+    A = []
+    D = int(math.log(self.n) + 2)
+    for i in range(0, D):
+      A.append(None)
+    root_nodes = [w for w in self.iterate(self.root_list)]
+    for w in range(0, len(root_nodes)):
+      x = root_nodes[w]
+      d = x.degree
+      while A[d] is not None:
+        y = A[d]
+        if x.key > y.key:
+          tmp = x
+          x = y
+          y = tmp
+        self.fib_heap_link(y, x)
+        A[d] = None
+        d = d + 1
+
+    self.min = None
+    for i in range(0, D):
+      if A[i] is not None:
+        if self.min is None:
+          self.root_list = A[i]
+          self.min = A[i]
+        else:
+          self.add_to_root_list(A[i])
+          if A[i].key < self.min.key:
+            self.min = A[i]
+
     
 
   def fib_heap_extract_min(self):
