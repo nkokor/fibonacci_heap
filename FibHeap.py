@@ -135,9 +135,7 @@ class FibHeap():
         else:
           self.add_to_root_list(A[i])
           if A[i].key < self.min.key:
-            self.min = A[i]
-
-    
+            self.min = A[i]  
 
   def fib_heap_extract_min(self):
     z = self.min
@@ -165,3 +163,39 @@ class FibHeap():
       # reduce node count
       self.n = self.n - 1
     return z
+  
+  def cut(self, x, y):
+    
+    # removing x from y child nodes
+    if y.child == y.child.right:
+      y.child = None
+    elif y.child == x:
+      y.child = x.right
+      x.right.p = y
+    x.left.right = x.right
+    x.right.left = x.left
+
+    y.degree = y.degree - 1
+    self.add_to_root_list(y)
+    x.p = None
+    x.mark = False
+
+  def cascading_cut(self, y):
+    z = y.p 
+    if z is not None:
+      if y.mark is False:
+        y.mark = True
+      else:
+        self.cut(y, z)
+        self.cascading_cut(z)
+
+  def fib_heap_decrease_key(self, x, k):
+    if k > x.key:
+      raise ValueError("New key value is greater than current key value!")
+    x.key = k
+    y = x.p 
+    if y is not None and x.key < y.key:
+      self.cut(x, y)
+      self.cascading_cut(y)
+    if x.key < self.min.key:
+      self.min = x
