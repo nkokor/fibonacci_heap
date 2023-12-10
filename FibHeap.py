@@ -165,7 +165,7 @@ class FibHeap():
     return z
   
   def cut(self, x, y):
-    
+
     # removing x from y child nodes
     if y.child == y.child.right:
       y.child = None
@@ -199,3 +199,7 @@ class FibHeap():
       self.cascading_cut(y)
     if x.key < self.min.key:
       self.min = x
+
+  def fib_heap_delete(self, x):
+    self.fib_heap_decrease_key(x, float('-inf'))
+    self.fib_heap_extract_min()
