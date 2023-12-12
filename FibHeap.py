@@ -162,21 +162,22 @@ class FibHeap():
       self.n = self.n - 1
     return z
   
+  def remove_from_child_list(parent_node, child_node):
+    # removing child_node from parent_node's child list
+    if parent_node.child == parent_node.child.right:
+      parent_node.child = None
+    elif parent_node.child == child_node:
+      parent_node.child = child_node.right
+      child_node.right.p = parent_node
+    child_node.left.right = child_node.right
+    child_node.right.left = child_node.left
+    child_node.p = None
+    parent_node.degree = parent_node.degree - 1
+  
   def cut(self, x, y):
-
-    # removing x from y child nodes
-    if y.child == y.child.right:
-      y.child = None
-    elif y.child == x:
-      y.child = x.right
-      x.right.p = y
-    # removing x from sibling list
-    x.left.right = x.right
-    x.right.left = x.left
-
-    y.degree = y.degree - 1
+    # removing x from child list of y
+    self.remove_from_child_list(y, x)
     self.add_to_root_list(x)
-    x.p = None
     x.mark = False
 
   def cascading_cut(self, y):
