@@ -30,23 +30,17 @@ class FibHeap():
 
   # asuming that x is already an initialized node with set key 
   def fib_heap_insert(self, x):
-    x.degree = 0
-    x.p = None
-    x.child = None
-    x.mark = False
     x.left = x
     x.right = x
+    
+    # adding new node to root list
+    self.add_to_root_list(x)
 
-    # if heap is empty x is the only root and heap minimum
-    if self.min is None:
-      self.root_list = x
+    # updating heap minimum if neccessary
+    if self.min is None or x.key < self.min.key:
       self.min = x
 
-    # if heap is not empty x is inserted into root list
-    else:
-      self.add_to_root_list(x)
-      if self.min is None or x.key < self.min.key:
-        self.min = x
+    # updating number of nodes
     self.n = self.n + 1
     return x
 
@@ -56,12 +50,12 @@ class FibHeap():
 
     # getting the last node in h1 root list
     h1_last = h1.root_list
-    while h1_last.right is not h1_last:
+    while h1_last.right != h1_last:
       h1_last = h1_last.right
     
     # getting the first node in h2 root list
     h2_first = h2.root_list
-    while h2_first.left is not h2_first:
+    while h2_first.left != h2_first:
       h2_first = h2_first.left
 
     # concatenation of two root lists
@@ -90,6 +84,20 @@ class FibHeap():
         flag = True
       yield current_node
       current_node = current_node.right
+
+  def add_to_child_list(x, y):
+    # adding y as new child of x
+    if x.child is not None:
+      y.right = x.child.right
+      y.left = x.child
+      x.child.right.left = y
+      x.child.right = y
+    else:
+      x.child = y
+    
+    # updating degree of x and setting parent of y to x
+    x.degree = x.degree + 1
+    y.p = x
   
   def fib_heap_link(self, y, x):
     # removing y from root list 
@@ -98,17 +106,8 @@ class FibHeap():
     y.right = y
 
     # making y child of x
-    if x.child is None:
-      x.child = y
-    # y is set to the right side of x.child
-    else:
-      y.right = x.child.right
-      y.left = x.child
-      x.child.right.left = y
-      x.child.right = y
+    self.add_to_child_list(x, y)
 
-    x.degree = x.degree + 1
-    y.p = x
     y.mark = False
 
   def consolidate(self):
