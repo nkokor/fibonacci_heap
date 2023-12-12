@@ -1,124 +1,147 @@
 import math
 
 class FibHeap():
+
   def __init__(self):
     self.n = 0
     self.min = None
     self.root_list = None
 
+  # helper methods
+
+  # adds node to root list
+  def add_to_root_list(self, node):
+    if self.root_list is not None:
+      node.right = self.root_list.right
+      node.left = self.root_list
+      self.root_list.right.left = node
+      self.root_list.right = node
+    else:
+      self.root_list = node
+
+  # removes node from root list
+  def remove_from_root_list(self, node):
+    if node == self.root_list and node.right == node:
+      self.root_list = None
+    else:
+      if node == self.root_list:
+        self.root_list = node.right
+      node.left.right = node.right
+      node.right.left = node.left
+
+  # sets new child of parent
+  def add_to_child_list(parent, child):
+    # adding child as new child of parent
+    if parent.child is not None:
+      child.right = parent.child.right
+      child.left = parent.child
+      parent.child.right.left = child
+      parent.child.right = child
+    else:
+      parent.child = child
+    # updating degree of parent and setting parent of child to parent
+    parent.degree = parent.degree + 1
+    child.p = parent
+
+  # removes child from parent
+  def remove_from_child_list(parent, child):
+    # removing child from parent's child list
+    if parent.child == parent.child.right:
+      parent.child = None
+    elif parent.child == child:
+      parent.child = child.right
+      child.right.p = parent
+    child.left.right = child.right
+    child.right.left = child.left
+    child.p = None
+    parent.degree = parent.degree - 1
+
+  # creates an empty heap
   @staticmethod
   def make_fib_heap():
     return FibHeap()
   
+  # returns minimum node of heap
   def fib_heap_minimum(self):
     return self.min
   
-  def add_to_root_list(self, x):
-    if self.root_list is not None:
-      x.right = self.root_list.right
-      x.left = self.root_list
-      self.root_list.right.left = x
-      self.root_list.right = x
-    else:
-      self.root_list = x
-
-  def remove_from_root_list(self, x):
-    if x == self.root_list:
-      self.root_list = x.right
-    x.left.right = x.right
-    x.right.left = x.left
-
-  # asuming that x is already an initialized node with set key 
-  def fib_heap_insert(self, x):
-    x.left = x
-    x.right = x
-    
+  # main methods
+  
+  # inserts pre-initialized node into heap
+  def fib_heap_insert(self, node):
+    node.degree = 0
+    node.p = None
+    node.child = None
+    node.mark = False
     # adding new node to root list
-    self.add_to_root_list(x)
-
+    self.add_to_root_list(node)
     # updating heap minimum if neccessary
-    if self.min is None or x.key < self.min.key:
-      self.min = x
-
+    if self.min is None or node.key < self.min.key:
+      self.min = node
     # updating number of nodes
     self.n = self.n + 1
-    return x
 
+  # combines two heaps into brand new heap
+  # NOT FINISHED
   @staticmethod
   def fib_heap_union(h1, h2):
     h = FibHeap.make_fib_heap()
-
-    # getting the last node in h1 root list
-    h1_last = h1.root_list
-    while h1_last.right != h1_last:
-      h1_last = h1_last.right
-    
-    # getting the first node in h2 root list
-    h2_first = h2.root_list
-    while h2_first.left != h2_first:
-      h2_first = h2_first.left
-
-    # concatenation of two root lists
-    h1_last.right = h2_first
-    h2_first.left = h1_last
-
-    # setting new heap root list
-    h.root_list = h1.root_list
-
-    # setting heap minimum
     h.min = h1.min
+    h.root_list = h1.root_list
+    # concatenation of h2 and h root lists
+    if h.root_list == None:
+      h.root_list = h2.root_list
+    elif h2.root_list == None:
+      h.root_list = h1.root_list
+    else:
+      last_node_h = h.root_list.left
+      last_node_h2 = h2.root_list.left
+      last_node_h.right = h2.root_list
+      h2.root_list.left = last_node_h
+      last_node_h2.right = h.root_list
+      h.root_list.left = last_node_h2
     if h1.min is None or (h2.min is not None and h2.min.key < h1.min.key):
       h.min = h2.min
-    h.n = h1.n + h2.n
+    h.n = h1.n + h2.n 
     return h
   
-  # helper function used to iterate through a doubly linked list
-  def iterate(self, x):
-    current_node = x
-    stop = x
-    flag = False
-    while True:
-      if current_node == stop and flag is True:
-        break
-      elif current_node == stop:
-        flag = True
-      yield current_node
-      current_node = current_node.right
-
-  def add_to_child_list(x, y):
-    # adding y as new child of x
-    if x.child is not None:
-      y.right = x.child.right
-      y.left = x.child
-      x.child.right.left = y
-      x.child.right = y
-    else:
-      x.child = y
-    
-    # updating degree of x and setting parent of y to x
-    x.degree = x.degree + 1
-    y.p = x
+  # extracts minimum node from heap, returns extracted node
+  def fib_heap_extract_min(self):
+    z = self.min
+    if z is not None:
+      # adding each child of z to root list and set parent to None
+      if z.child is not None:
+        current_child = z.child
+        while True:
+          next_child = current_child.right
+          self.add_to_root_list(current_child)
+          current_child.p = None
+          if next_child == z.child:
+            break
+          current_child = next_child
+      # removing z from root list
+      self.remove_from_root_list(z)
+      # updating root list and minimum to None if the heap will become empty
+      if z.right == z:
+        self.min = None
+      else:
+        self.min = z.right
+        self.consolidate()
+      # reduce node count
+      self.n = self.n - 1
+    return z
   
-  def fib_heap_link(self, y, x):
-    # removing y from root list 
-    self.remove_from_root_list(y)
-    y.left = y
-    y.right = y
-
-    # making y child of x
-    self.add_to_child_list(x, y)
-
-    y.mark = False
-
+  # combines trees of the same degree
+  # NOT FINISHED
   def consolidate(self):
     A = []
-    D = int(math.log(self.n) + 2)
+    D = int(math.log(self.n, 2))
     for i in range(0, D):
       A.append(None)
     # combining all trees of same degree
-    root_nodes = [w for w in self.iterate(self.root_list)]
-    for w in range(0, len(root_nodes)):
-      x = root_nodes[w]
+    w = self.root_list
+    while True:
+      x = w
       d = x.degree
       while A[d] is not None:
         y = A[d]
@@ -129,66 +152,31 @@ class FibHeap():
         self.fib_heap_link(y, x)
         A[d] = None
         d = d + 1
-
+      A[d] = x
+      if w.right == self.root_list:
+        break
+      w = w.right
     # setting new heap minimum
+    self.min = None
     for i in range(0, D):
       if A[i] is not None:
-        if A[i].key < self.min.key:
+        if self.min is None:
+          self.root_list = A[i]
           self.min = A[i]
+        else:
+          self.add_to_root_list(A[i])
+          if A[i].key < self.min.key:
+            self.min = A[i]
 
-  def fib_heap_extract_min(self):
-    z = self.min
-    if z is not None:
-      # add each child of z to root list and set parent to None
-      if z.child is not None:
-        children = [c for c in self.iterate(z.child)]
-        for i in range(0, len(children)):
-          self.add_to_root_list(children[i])
-          children[i].p = None
+  # inserts tree with root y into tree with root x
+  def fib_heap_link(self, y, x):
+    # removing y from root list 
+    self.remove_from_root_list(y)
+    # making y child of x
+    self.add_to_child_list(x, y)
+    y.mark = False
 
-      # removing z from root list
-      self.remove_from_root_list(z)
-
-      # updating root list and minimum to None if the heap will become empty
-      if z.right == z:
-        self.min = None
-        self.root_list = None
-
-      else:
-        self.min = z.right
-        self.consolidate()
-
-      # reduce node count
-      self.n = self.n - 1
-    return z
-  
-  def remove_from_child_list(parent_node, child_node):
-    # removing child_node from parent_node's child list
-    if parent_node.child == parent_node.child.right:
-      parent_node.child = None
-    elif parent_node.child == child_node:
-      parent_node.child = child_node.right
-      child_node.right.p = parent_node
-    child_node.left.right = child_node.right
-    child_node.right.left = child_node.left
-    child_node.p = None
-    parent_node.degree = parent_node.degree - 1
-  
-  def cut(self, x, y):
-    # removing x from child list of y
-    self.remove_from_child_list(y, x)
-    self.add_to_root_list(x)
-    x.mark = False
-
-  def cascading_cut(self, y):
-    z = y.p 
-    if z is not None:
-      if y.mark is False:
-        y.mark = True
-      else:
-        self.cut(y, z)
-        self.cascading_cut(z)
-
+  # decreases value of key of the given node to the new given value
   def fib_heap_decrease_key(self, x, k):
     if k > x.key:
       raise ValueError("New key value is greater than current key value!")
@@ -199,7 +187,25 @@ class FibHeap():
       self.cascading_cut(y)
     if x.key < self.min.key:
       self.min = x
+  
+  # removes child from parent tree and adds it to the root list
+  def cut(self, child, parent):
+    # removing child from child list of parent
+    self.remove_from_child_list(parent, child)
+    self.add_to_root_list(child)
+    child.mark = False
 
+  # performs cut operation until unmarked parent node is reached
+  def cascading_cut(self, y):
+    z = y.p 
+    if z is not None:
+      if y.mark is False:
+        y.mark = True
+      else:
+        self.cut(y, z)
+        self.cascading_cut(z)
+
+  # removes given node from heap
   def fib_heap_delete(self, x):
     self.fib_heap_decrease_key(x, float('-inf'))
     self.fib_heap_extract_min()
