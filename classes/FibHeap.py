@@ -1,4 +1,4 @@
-from FibNode import FibNode
+from classes.FibNode import FibNode
 import math, sys
 
 class FibHeap:

@@ -1,6 +1,6 @@
 import unittest
-from FibHeap import FibHeap
-from FibNode import FibNode
+from classes.FibHeap import FibHeap
+from classes.FibNode import FibNode
 
 class TestFibonacciHeap(unittest.TestCase):
   def setUp(self):

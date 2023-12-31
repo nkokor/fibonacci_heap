@@ -1,5 +1,5 @@
-from FibHeap import FibHeap
-from FibNode import FibNode
+from classes.FibHeap import FibHeap
+from classes.FibNode import FibNode
 
 # test heap
 heap = FibHeap()
